@@ -20,7 +20,7 @@
 
 ## コードマップ
 
-| File | Role |
+| ファイル | 役割 |
 |---|---|
 | `s05_todo_write/Main.java` | 本章の入口。この仕組みを1つのループに接続する。 |
 | `harness/Todo.java`, `harness/Hooks.java` | 全章で共有する実装。 |

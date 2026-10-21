@@ -20,7 +20,7 @@
 
 ## コードマップ
 
-| File | Role |
+| ファイル | 役割 |
 |---|---|
 | `s01_agent_loop/Main.java` | 本章の入口。この仕組みを1つのループに接続する。 |
 | `harness/AgentLoop.java`, `harness/Cli.java`, `harness/Workspace.java` | 全章で共有する実装。 |

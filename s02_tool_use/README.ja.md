@@ -20,7 +20,7 @@
 
 ## コードマップ
 
-| File | Role |
+| ファイル | 役割 |
 |---|---|
 | `s02_tool_use/Main.java` | 本章の入口。この仕組みを1つのループに接続する。 |
 | `harness/StandardTools.java`, `harness/ToolRegistry.java`, `harness/Workspace.java` | 全章で共有する実装。 |

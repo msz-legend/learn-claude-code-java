@@ -20,7 +20,7 @@
 
 ## コードマップ
 
-| File | Role |
+| ファイル | 役割 |
 |---|---|
 | `s08_context_compact/Main.java` | 本章の入口。この仕組みを1つのループに接続する。 |
 | `harness/Compactor.java`, `harness/AgentLoop.java` | 全章で共有する実装。 |

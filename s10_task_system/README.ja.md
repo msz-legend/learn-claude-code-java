@@ -20,7 +20,7 @@
 
 ## コードマップ
 
-| File | Role |
+| ファイル | 役割 |
 |---|---|
 | `s10_task_system/Main.java` | 本章の入口。この仕組みを1つのループに接続する。 |
 | `harness/TaskStore.java` | 全章で共有する実装。 |

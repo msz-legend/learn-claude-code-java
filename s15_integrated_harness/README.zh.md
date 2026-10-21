@@ -20,7 +20,7 @@
 
 ## 代码地图
 
-| File | Role |
+| 文件 | 作用 |
 |---|---|
 | `s15_integrated_harness/Main.java` | 本章入口：把这个机制接进同一个循环。 |
 | `harness/AgentLoop.java`, `harness/Todo.java`, `harness/Skills.java`, `harness/Memory.java`, `harness/TaskStore.java`, `harness/Background.java`, `harness/Cron.java`, `harness/Compactor.java`, `harness/Agents.java` | 每章共用的实现。 |

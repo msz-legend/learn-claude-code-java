@@ -20,7 +20,7 @@
 
 ## コードマップ
 
-| File | Role |
+| ファイル | 役割 |
 |---|---|
 | `s12_cron_scheduler/Main.java` | 本章の入口。この仕組みを1つのループに接続する。 |
 | `harness/Cron.java` | 全章で共有する実装。 |

@@ -20,7 +20,7 @@
 
 ## コードマップ
 
-| File | Role |
+| ファイル | 役割 |
 |---|---|
 | `s15_integrated_harness/Main.java` | 本章の入口。この仕組みを1つのループに接続する。 |
 | `harness/AgentLoop.java`, `harness/Todo.java`, `harness/Skills.java`, `harness/Memory.java`, `harness/TaskStore.java`, `harness/Background.java`, `harness/Cron.java`, `harness/Compactor.java`, `harness/Agents.java` | 全章で共有する実装。 |
