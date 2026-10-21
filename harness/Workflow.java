@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -87,6 +89,7 @@ public final class Workflow {
         private final AgentCall agentCall;
         private final String stepName;
         private final Map<String, String> agentCache;
+        private final Map<String, String> stepOutputs;
         private final Path journal;
         private final List<String> events;
 
@@ -94,13 +97,24 @@ public final class Workflow {
                 AgentCall agentCall,
                 String stepName,
                 Map<String, String> agentCache,
+                Map<String, String> stepOutputs,
                 Path journal,
                 List<String> events) {
             this.agentCall = agentCall;
             this.stepName = stepName;
             this.agentCache = agentCache;
+            this.stepOutputs = stepOutputs;
             this.journal = journal;
             this.events = events;
+        }
+
+        /**
+         * Output of a previous step if it was already journaled, so step bodies
+         * work on a resumed run where earlier steps are loaded from the journal
+         * instead of re-executed. Empty string when the step has no output yet.
+         */
+        public String previous(String stepName) {
+            return stepOutputs.getOrDefault(stepName, "");
         }
 
         public String agent(String prompt) throws Exception {
@@ -198,11 +212,11 @@ public final class Workflow {
             Path journal = dir.resolve("journal.jsonl");
 
             Map<String, String> completed = new LinkedHashMap<>();
-            Map<String, String> agentCache = new LinkedHashMap<>();
+            Map<String, String> agentCache = new ConcurrentHashMap<>();
             loadJournal(journal, completed, agentCache);
 
             List<StepResult> results = new ArrayList<>();
-            List<String> events = new ArrayList<>();
+            List<String> events = new CopyOnWriteArrayList<>();
             Map<String, Object> output = new LinkedHashMap<>();
             String status = "completed";
 
@@ -218,7 +232,8 @@ public final class Workflow {
                 events.add("step.start " + step.name());
                 System.out.println("[workflow] step: " + step.name());
                 try {
-                    Context context = new Context(agentCall, step.name(), agentCache, journal, events);
+                    Context context = new Context(
+                            agentCall, step.name(), agentCache, completed, journal, events);
                     String value = step.body().run(context);
                     long millis = System.currentTimeMillis() - start;
                     results.add(new StepResult(step.name(), value, false, millis));

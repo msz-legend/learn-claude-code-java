@@ -87,6 +87,11 @@ public final class Main {
                 }),
                 new Workflow.Step("report", ctx -> {
                     ctx.phase("Report");
+                    // On a resumed run, earlier steps may come from the journal
+                    // rather than fresh execution panels; fall back to the
+                    // journaled outputs so the report never sees null.
+                    String inspect = state.getOrDefault("inspect", ctx.previous("inspect"));
+                    String review = state.getOrDefault("review", ctx.previous("review"));
                     String report = ctx.agent("""
                             Write a short review report for the repository.
                             Use only these findings; do not invent new ones.
@@ -96,7 +101,7 @@ public final class Main {
 
                             Reviews:
                             %s
-                            """.formatted(state.get("inspect"), state.get("review")));
+                            """.formatted(inspect, review));
                     state.put("report", report);
                     return report;
                 }));
@@ -122,7 +127,8 @@ public final class Main {
             Workflow.Result result = registry.run("review", args[0]);
             System.out.println(result.render());
             System.out.println();
-            System.out.println(state.getOrDefault("report", "(no report)"));
+            Object journaled = result.output().get("report");
+            System.out.println(journaled != null ? journaled : state.getOrDefault("report", "(no report)"));
             return;
         }
 

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Durable five-field cron scheduling. The scheduler writes due jobs to an
@@ -50,7 +51,7 @@ public final class Cron {
             return "Error: prompt is required";
         }
         Job job = new Job(
-                "cron-" + System.currentTimeMillis() + "-" + (jobs.size() + 1),
+                "cron-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 4),
                 expression.strip(),
                 text,
                 recurring,

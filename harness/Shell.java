@@ -48,6 +48,9 @@ public final class Shell {
 
         boolean finished = process.waitFor(Math.max(1, timeoutSeconds), TimeUnit.SECONDS);
         if (!finished) {
+            // Kill the whole tree: on Windows an orphaned grandchild would keep
+            // the stdout pipe open, and the reader thread with it.
+            process.descendants().forEach(ProcessHandle::destroyForcibly);
             process.destroyForcibly();
             process.waitFor(2, TimeUnit.SECONDS);
             reader.join(500);

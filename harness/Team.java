@@ -503,6 +503,12 @@ public final class Team {
                 break;
             } catch (FileAlreadyExistsException e) {
                 try {
+                    if (System.currentTimeMillis() - Files.getLastModifiedTime(lockFile).toMillis() > 30_000) {
+                        // A lock left behind by a crashed process would block
+                        // every future run; a stale lock is safe to reclaim.
+                        Files.deleteIfExists(lockFile);
+                        continue;
+                    }
                     if (System.currentTimeMillis() > deadline) {
                         throw new IllegalStateException("team mailbox is locked");
                     }
@@ -510,6 +516,8 @@ public final class Team {
                 } catch (InterruptedException interrupted) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("interrupted while waiting for mailbox lock", interrupted);
+                } catch (IOException io) {
+                    throw new IllegalStateException("could not check mailbox lock: " + io.getMessage(), io);
                 }
             } catch (IOException e) {
                 throw new IllegalStateException("could not lock mailbox: " + e.getMessage(), e);
@@ -525,7 +533,7 @@ public final class Team {
             try {
                 Files.deleteIfExists(lockFile);
             } catch (IOException ignored) {
-                // Stale lock is cleared by the next writer after a timeout.
+                // A leftover lock is reclaimed after 30 seconds (see above).
             }
         }
     }

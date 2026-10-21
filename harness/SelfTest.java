@@ -2,6 +2,8 @@ package harness;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ public final class SelfTest {
         testCompactionEstimate();
         testMemory();
         testShell();
+        testWorkflowResume();
+        testTeamStaleLock();
 
         System.out.println();
         System.out.println(passed + " passed, " + failed + " failed");
@@ -122,6 +126,55 @@ public final class SelfTest {
                 Path.of(".").toAbsolutePath(), 20);
         check("shell output", result.output().toLowerCase().contains("hello"));
         check("shell exit", result.exitCode() == 0);
+    }
+
+    private static void testWorkflowResume() throws Exception {
+        Path dir = Files.createTempDirectory("lcc-java-workflow");
+        try {
+            Path runDir = dir.resolve(".workflows").resolve("partial");
+            Files.createDirectories(runDir);
+            Files.writeString(runDir.resolve("journal.jsonl"),
+                    "{\"step\":\"one\",\"type\":\"step\",\"status\":\"complete\","
+                            + "\"output\":\"first output\",\"ms\":1,\"at\":\"2025-01-01T00:00:00Z\"}\n");
+            Workflow.Registry registry = new Workflow.Registry(dir, prompt -> "fresh");
+            registry.register(
+                    new Workflow.Meta("review", "test", List.of("one", "two")),
+                    List.of(
+                            new Workflow.Step("one", ctx -> "never"),
+                            new Workflow.Step("two", ctx -> "report over " + ctx.previous("one"))));
+            Workflow.Result result = registry.run("review", "partial");
+            int cached = 0;
+            int fresh = 0;
+            for (Workflow.StepResult step : result.steps()) {
+                if (step.cached()) {
+                    cached++;
+                } else {
+                    fresh++;
+                }
+            }
+            check("workflow cached+fresh", cached == 1 && fresh == 1);
+            check("workflow previous", "report over first output".equals(result.output().get("two")));
+        } finally {
+            deleteTree(dir);
+        }
+    }
+
+    private static void testTeamStaleLock() throws Exception {
+        Path dir = Files.createTempDirectory("lcc-java-team");
+        try {
+            Team team = new Team(new Workspace(dir), null, null);
+            check("team send", team.send("lead", "lead", "message", "hello").startsWith("Sent"));
+            // Simulate a crashed writer: a lock file left behind 40 seconds ago
+            // must be reclaimed instead of blocking every future run.
+            Path lock = dir.resolve(".team").resolve(".lock");
+            Files.createFile(lock);
+            Files.setLastModifiedTime(lock, FileTime.from(Instant.now().minusSeconds(40)));
+            check("team stale lock recovered",
+                    team.send("lead", "lead", "message", "again").startsWith("Sent"));
+            check("team lock cleared", !Files.exists(lock));
+        } finally {
+            deleteTree(dir);
+        }
     }
 
     private static void check(String name, boolean ok) {

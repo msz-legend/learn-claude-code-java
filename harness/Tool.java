@@ -32,6 +32,9 @@ public record Tool(
             if (output == null) {
                 output = "(no output)";
             }
+            // Teaching detail: a handler that returns output starting with
+            // "Error:" is also reported to the model as a failed tool call,
+            // so shells can surface failures without exceptions.
             return new Result(output, output.startsWith("Error:"));
         } catch (Exception e) {
             String message = e.getMessage();
