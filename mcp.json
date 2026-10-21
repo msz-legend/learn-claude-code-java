@@ -1,0 +1,7 @@
+{
+  "servers": {
+    "demo": {
+      "command": ["java", "-cp", "out", "s14_mcp_plugin.DemoMcpServer"]
+    }
+  }
+}

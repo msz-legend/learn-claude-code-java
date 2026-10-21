@@ -1,0 +1,13 @@
+out/
+sources.txt
+.env
+.hooks.json
+.tasks/
+.team/
+.workflows/
+.memory/
+.cron/
+.compact/
+.worktrees/
+*.class
+*.log
